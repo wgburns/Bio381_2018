@@ -9,3 +9,4 @@ output:
 ---
 
 ## Initial website for Github project 
+<img src = "WiltonFieldPic.jpg" width = "200" length = "200"/>
