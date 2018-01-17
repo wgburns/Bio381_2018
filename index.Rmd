@@ -3,8 +3,9 @@ title: "Bio 381"
 author: "Wilton Burns"
 date: "January 17, 2018"
 output: 
-  html_document: 
-    theme: yeti
+  prettydoc::html_pretty:
+    theme: architect
+    highlight: github
 ---
 
 ## Initial website for Github project 
