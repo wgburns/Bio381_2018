@@ -9,4 +9,4 @@ output:
 ---
 
 ## Initial website for Github project 
-<img src = "WiltonFieldPic.jpg"width = "200" height = "200" rotate = "90"/>
+<img src = "WiltonFieldPic.jpg" width = "300" height = "600"/>
