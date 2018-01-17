@@ -4,9 +4,9 @@ author: "Wilton Burns"
 date: "January 17, 2018"
 output: 
   prettydoc::html_pretty:
-    theme: architect
+    theme: HPSTR
     highlight: github
 ---
 
-## Initial website for Github project 
-<img src = "WiltonFieldPic.jpg" width = "200"" height = "250"/>
+## Website for Github project - Spring 2018
+<img src = "WBWater.jpg" width = "400"" height = "275" align = "left" hspace = "5" />     My name is Wilton Burns and I'm pursuring my PhD at the University of Vermont researching nutrient dynamics and phytoplankton blooms in Lake Champlain. I'm funded as a graduate research assistant on the Vermont EPSCoR Basin Resilience to Extreme Events (BREE) grant so am particularly interested in how extreme meterological events impact nutrient cycling and algae blooms.  
