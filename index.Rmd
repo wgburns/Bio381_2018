@@ -10,7 +10,9 @@ output:
 
 #Website for Github project - Spring 2018
 <img src = "WBWater.jpg" width = "400"" height = "275" align = "left" hspace = "5" />     My name is Wilton Burns and I'm pursuring my PhD at the University of Vermont researching nutrient dynamics and phytoplankton blooms in Lake Champlain. I'm funded as a graduate research assistant on the Vermont EPSCoR Basin Resilience to Extreme Events (BREE) grant so am particularly interested in how extreme meterological events impact nutrient cycling and algae blooms. 
-Check out the [Saving our Waters VT PBS](https://www.vermontpbs.org/water/) mini-series that highlights BREE research. 
+Check out the [Saving our Waters VT PBS](https://www.vermontpbs.org/water/) mini-series that highlights BREE research.   
+
+
 
 ##Homework assignments 
 [Homework #2](Homework02.html)
