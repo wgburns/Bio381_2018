@@ -1,0 +1,10 @@
+---
+title: "Homework02"
+author: "Wilton Burns"
+date: "January 24, 2018"
+output: html_document
+---
+![](WBWater.jpg)   
+This is a place holder for my first chart   
+![](WBWater.jpg)
+This is a place holder for my second chart 
