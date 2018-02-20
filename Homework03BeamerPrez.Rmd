@@ -1,35 +1,31 @@
 ---
-title: "Homework03"
-author: "Wilton Burns"
+title: "Practice presentation with beautiful pictures"
+author: "Wilton G. Burns"
 date: "January 31, 2018"
-output: ioslides_presentation
+output: 
+  beamer_presentation: 
+    colortheme: beaver
+    incremental: yes
+    theme: Madrid
+  ioslides_presentation: 
+    incremental: yes
+  slidy_presentation: 
+    incremental: yes
 ---
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = FALSE)
 ```
 
-## R Markdown
+##The first of the beautiful pictures is a site map 
+\begin{picture}(320,250)
+\put(85,75){\includegraphics[height=6cm]{Map1.jpg}}
+\put(00,60){\begin{minipage}[t]{1\linewidth}
+{Choose a point on the unit circle. Connect it to the origin with a line of length one, and denote the angle between that line and the horizontal coordinate axis by $\theta$.}
+\end{minipage}}
+\end{picture}
 
-This is an R Markdown presentation. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
-
-When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document.
-
-## Slide with Bullets
-
-- Bullet 1
-- Bullet 2
-- Bullet 3
-
-## Slide with R Output
-
-```{r cars, echo = TRUE}
-summary(cars)
-```
-
-## Slide with Plot
-
-```{r pressure}
-plot(pressure)
-```
-
+##My second slide will have some bullet points 
+- science is fun 
+- often times it is hard 
+- but then you always remember it's fun to be outside collecting data!
