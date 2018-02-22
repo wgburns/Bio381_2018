@@ -21,3 +21,5 @@ Check out the [Saving our Waters VT PBS](https://www.vermontpbs.org/water/) mini
 [Homework #4](Homework04.html)
 <br/> 
 [Homework #5](Homework5Typ.html)
+</br>
+[Homework #6](Homework06.html)

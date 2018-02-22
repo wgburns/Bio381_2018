@@ -1,0 +1,368 @@
+---
+title: "Homework06"
+author: "Wilton Burns"
+date: "February 21, 2018"
+output: html_document
+---
+
+#### 1. Set up a new `.Rmd` file for this exercise. Copy and paste the code below into different code chunks, and then read the text and run the code chunks one at a time to see what they do. You probably won’t understand everything in the code, but this is a good start for seeing some realistic uses of ggplot. We will cover most of these details in the next few weeks.
+</br>
+```{r}
+library(ggplot2) # for graphics
+library(MASS) # for maximum likelihood estimation
+```
+</br>
+**Read in data vector**
+</br>
+To illustrate, we will generate some fake data here:
+```{r}
+# quick and dirty, a truncated normal distribution to work on the solution set
+#z <- rnorm(n=3000,mean=0.2)
+#z <- data.frame(1:3000,z)
+#names(z) <- list("ID","myVar")
+```
+</br> 
+
+#### 2. Once the code is in and runs, try reading in your own .csv file into a data frame with this code chunk:
+</br>
+For this assignment I'm going to look at the distribution of extracted chlorophyll data (myVar) from Missisquoi Bay in Lake Champlain (compiled from the VT DEC long-term monitoring dataset at Site 50 by WGB Feb 21, 2018) 
+</br>
+
+#### 3. Once your data are in, go ahead and comment out the “fake data” that are simulated in the chunk below. At that point, if you compile the entire file, it should run all of the code on your own data. Be sure to add comments to the code and commentary to the .Rmd file so that you can go back to it later and understand and use the code in your work.
+
+```{r}
+# reading in my dataset
+chl <- read.table("MB50_Chl.csv",
+                  header=TRUE,sep=",",stringsAsFactors=FALSE)
+# simple fix of renaming Chl to myVar to match rest of code
+chl$myVar <- chl$CHL
+# re-naming chl to z to match code (and omitting NAs)
+z <- na.omit(chl)
+str(z)
+summary(z$myVar)
+
+```
+</br>
+**Plot histogram of data**
+</br>
+Plot a histogram of the data, using a modification of the code from lecture. Here we are switching from qplot to ggplot for more graphics options. We are also rescaling the y axis of the histogram from counts to density, so that the area under the histogram equals 1.0.
+```{r}
+# first is to make a histogram of my data
+# made the color lightgreen because it's chlorophyll data!
+p1 <- ggplot(data=z, aes(x=myVar, y=..density..)) +
+  geom_histogram(color="grey60",fill="lightgreen",size=0.2) 
+print(p1)
+```
+</br>
+**Add empirical density curve**
+</br>
+Now modify the code to add in a kernel density plot of the data. This is an empirical curve that is fitted to the data. It does not assume any particular probability distribution, but it smooths out the shape of the histogram:
+```{r}
+# now adding in a density curve that simply smooths out the shape of the histogram
+p1 <-  p1 +  geom_density(linetype="dotted",size=0.75)
+print(p1)
+```
+</br>
+**Get maximum likelihood parameters for `normal `**
+</br>
+Next, fit a normal distribution to your data and grab the maximum likelihood estimators of the two parameters of the normal, the mean and the variance:
+```{r}
+# now I am fitting a normal distribution line to my data to compare
+# creating a list with the normal parameters (if this was a normal distribuion, this gives the mean and sd)
+normPars <- fitdistr(z$myVar,"normal")
+# when you print it out it just gives you the estimates for mean and sd (even though the fitdistr function gives other info like vcov,n,and loglik)
+print(normPars)
+str(normPars)
+# here I'm just getting the mean value 
+normPars$estimate["mean"] # note structure of getting a named attribute
+
+```
+</br>
+**Plot `normal ` probability density**
+</br>
+Now let's call the `dnorm ` function inside ggplot's `stat_function` to generate the probability density for the normal distribution. Read about  `stat_function` in the help system to see how you can use this to add a smooth function to any ggplot. Note that we first get the maximum likelihood parameters for a normal distribution fitted to thse data by calling `fitdistr`. Then we pass those parameters (`meanML` and `sdML` to  `stat_function`:
+```{r}
+# assigning variable meanML (max likelihood mean) and sdML (max likelihood sd)
+meanML <- normPars$estimate["mean"]
+sdML <- normPars$estimate["sd"]
+
+# find out how many values there are to know how many x values in the graph
+xval <- seq(0,max(z$myVar),len=length(z$myVar))
+
+# stat is creating the plot using stat_function, we give the function the x values, and n = the length of myVar, args are the meanML and sdML
+stat <- stat_function(aes(x = xval, y = ..y..), fun = dnorm, colour="red", n = length(z$myVar), args = list(mean = meanML, sd = sdML))
+p1 + stat
+```
+</br>
+Notice that the best-fitting normal distribution (red curve) for these data actually has a biased mean. That is because the data set has no negative values, so the normal distribution (which is symmetric) is not working well.
+</br>
+
+**Plot `exponential` probability density**
+</br>
+Now let's use the same template and add in the curve for the exponential:
+```{r}
+# doing a similar process to add a curve in for the exponential distribution
+# the output is the same as when we looked at the normal distribution because it is the same function, fitdistr
+expoPars <- fitdistr(z$myVar,"exponential")
+# the important value out of this function is the rate (whereas it was mean before)
+rateML <- expoPars$estimate["rate"]
+
+# now we add the exponential line to the graph except this time the arg is the ratemL 
+stat2 <- stat_function(aes(x = xval, y = ..y..), fun = dexp, colour="blue", n = length(z$myVar), args = list(rate=rateML))
+p1 + stat + stat2
+```
+</br>
+**Plot `uniform` probability density**
+</br>
+For the uniform, we don't need to use `fitdistr` because the maximum likelihood estimators of the two parameters are just the minimum and the maximum of the data:
+```{r}
+# fitting a uniform distribution to the data, don't need fitdistr because just need the max and min of the data (so min and max are the only necessary args)
+stat3 <- stat_function(aes(x = xval, y = ..y..), fun = dunif, colour="darkgreen", n = length(z$myVar), args = list(min=min(z$myVar), max=max(z$myVar)))
+ p1 + stat + stat2 + stat3
+```
+</br>
+**Plot `gamma` probability density**
+</br>
+```{r}
+# to fit the gamma distribution we will again use the fitdistr function
+# this time we are interested in the max likely shape and max likely rate values 
+gammaPars <- fitdistr(z$myVar,"gamma")
+shapeML <- gammaPars$estimate["shape"]
+rateML <- gammaPars$estimate["rate"]
+
+stat4 <- stat_function(aes(x = xval, y = ..y..), fun = dgamma, colour="orange", n = length(z$myVar), args = list(shape=shapeML, rate=rateML))
+ p1 + stat + stat2 + stat3 + stat4
+```
+</br>
+Notes: eyeballing it it looks like my data fits a gamma distribution most closely
+
+</br>
+**Plot beta probability density**
+</br>
+This one has to be shown in its own plot because the raw data must be rescaled so they are between 0 and 1, and then they can be compared to the beta.
+```{r}
+# beta is different from the others because the limits are from 0 to 1
+# here we are creating a separate plot with these limits and only the histogram and geom_density line (other lines don't work because they're not from 0 to 1)
+pSpecial <- ggplot(data=z, aes(x=myVar/(max(myVar + 0.1)), y=..density..)) +
+  geom_histogram(color="grey60",fill="lightgreen",size=0.2) + 
+  xlim(c(0,1)) +
+  geom_density(size=0.75,linetype="dotted")
+
+# creating list with the important beta parameters using fitdistr
+betaPars <- fitdistr(x=z$myVar/max(z$myVar + 0.1),start=list(shape1=1,shape2=2),"beta")
+# the params we are interested in are the max likely shape1 and max likely shape2
+shape1ML <- betaPars$estimate["shape1"]
+shape2ML <- betaPars$estimate["shape2"]
+
+# now creating a special plot with the beta distribution 
+statSpecial <- stat_function(aes(x = xval, y = ..y..), fun = dbeta, colour="orchid", n = length(z$myVar), args = list(shape1=shape1ML,shape2=shape2ML))
+pSpecial + statSpecial
+```
+
+
+#### 4. Take a look at the second-to-last graph which shows the histogram of your data and 4 probability density curves (normal, uniform, exponential, gamma) that are fit to the data. The `beta` distribution in the final graph is somewhat special. It often fits the data pretty well, but that is because we have assumed the largest data point is the true upper bound, and everything is scaled to that. The fit of the uniform distribution also fixes the upper bound. The other curves (normal, exponential, and gamma) are more realistic because they do not have an upper bound. For most data sets, the gamma will probably fit best, but if you data set is small, it may be very hard to see much of a difference between the curves.
+</br>
+My data do fit the gamma distribution the closest (like predicted by NG in this assignment).
+
+</br>
+**After looking at the plots now I can compare the best distribution by examining the log liklihood** -High log likelihood values are the "best" fit 
+```{r}
+normPars$loglik
+expoPars$loglik
+gammaPars$loglik
+# see which distr. "wins"!
+```
+</br>
+The highest (well, least negative loglik value) is for the gamma distribution, which matches my conclusion based on just eye-balling the graphs. Note: can't do it with the beta distribution because it has limits from 0 to 1 
+
+#### 5. Using the best-fitting distribution, go back to the code and get the maximum likelihood parameters. Use those to simulate a new data set, with the same length as your original vector, and plot that in a histogram and add the probability density curve. Right below that, generate a fresh histogram plot of the original data, and also include the probability density curve.
+```{r}
+# simulating new chl data using max likelihood parameters from the original dataset 
+zSim <- rgamma(shape = gammaPars$estimate[1], 
+             rate = gammaPars$estimate[2], 
+             n = gammaPars$n)
+
+# need to create a data frame from the simulated data
+zSim <- data.frame(1:gammaPars$n,zSim)
+# renaming the columns in zSim
+names(zSim) <- list("ID","myVar")
+# cleaning up the data just to be sure 
+zSim <- zSim[zSim$myVar>0,]
+
+# now creating the histogram with my simulated data, using cornsilk color so can differentiate between simulated and real data
+pSim <- ggplot(data=zSim, aes(x=myVar, y=..density..)) +
+  geom_histogram(color="grey60",fill="cornsilk",size=0.2) 
+# creating a histogram with the original data in the lightgreen color (without the smooth density line)
+pZ <- ggplot(data=z, aes(x=myVar, y=..density..)) +
+  geom_histogram(color="grey60",fill="lightgreen",size=0.2)
+pSim + stat4
+pZ + stat4
+
+```
+</br>
+**How do the two histogram profiles compare? Do you think the model is doing a good job of simulating realistic data that match your original measurements? Why or why not?**
+</br>
+The real chlorophyll data has a more drastic set of peak values near the mean and tapers off faster to the right of the mean. I don't think this model does the best job of simulated chlorophyll data for this bay because for the simulated data the histogram bar hits the orange gamma line at almost every bin, but for the real data the histogram bars are below the orange gamma line every time except for the second and third bars (which are clustered near the mean). The simulated data is trying to spread out the values more than what the real data is actually like. Also, the real data has a lot more higher values that do not show up at all in the simulated data. 
+</br>
+**If you have entered a large data frame with many columns, try running all of the code on a different variable to see how the simulation performs.**
+</br>
+I don't have other variables in this data frame but I am going to upload a different csv file with the same type of chlorophyll data but just from another sampling site in Lake Champlain - Saint Albans Bay. 
+```{r}
+# reading in my dataset
+chl <- read.table("StAB40_Chl.csv",
+                  header=TRUE,sep=",",stringsAsFactors=FALSE)
+# simple fix of renaming Chl to myVar to match rest of code
+chl$myVar <- chl$CHL
+# re-naming chl to z to match code (and omitting NAs)
+z <- na.omit(chl)
+str(z)
+summary(z$myVar)
+
+```
+</br>
+```{r}
+# only dif is changing the color to light blue to signify Saint Albans 
+p1 <- ggplot(data=z, aes(x=myVar, y=..density..)) +
+  geom_histogram(color="grey60",fill="lightblue",size=0.2) 
+print(p1)
+```
+</br>
+**Add empirical density curve**
+
+```{r}
+# now adding in a density curve that simply smooths out the shape of the histogram
+p1 <-  p1 +  geom_density(linetype="dotted",size=0.75)
+print(p1)
+```
+</br>
+**Get maximum likelihood parameters for `normal `**
+```{r}
+# now I am fitting a normal distribution line to my data to compare
+# creating a list with the normal parameters (if this was a normal distribuion, this gives the mean and sd)
+normPars <- fitdistr(z$myVar,"normal")
+# when you print it out it just gives you the estimates for mean and sd (even though the fitdistr function gives other info like vcov,n,and loglik)
+print(normPars)
+str(normPars)
+# here I'm just getting the mean value 
+normPars$estimate["mean"] # note structure of getting a named attribute
+
+```
+</br>
+**Plot `normal ` probability density**
+```{r}
+# assigning variable meanML (max likelihood mean) and sdML (max likelihood sd)
+meanML <- normPars$estimate["mean"]
+sdML <- normPars$estimate["sd"]
+
+# find out how many values there are to know how many x values in the graph
+xval <- seq(0,max(z$myVar),len=length(z$myVar))
+
+# stat is creating the plot using stat_function, we give the function the x values, and n = the length of myVar, args are the meanML and sdML
+stat <- stat_function(aes(x = xval, y = ..y..), fun = dnorm, colour="red", n = length(z$myVar), args = list(mean = meanML, sd = sdML))
+p1 + stat
+```
+
+</br>
+**Plot `exponential` probability density**
+</br>
+```{r}
+# doing a similar process to add a curve in for the exponential distribution
+# the output is the same as when we looked at the normal distribution because it is the same function, fitdistr
+expoPars <- fitdistr(z$myVar,"exponential")
+# the important value out of this function is the rate (whereas it was mean before)
+rateML <- expoPars$estimate["rate"]
+
+# now we add the exponential line to the graph except this time the arg is the ratemL 
+stat2 <- stat_function(aes(x = xval, y = ..y..), fun = dexp, colour="blue", n = length(z$myVar), args = list(rate=rateML))
+p1 + stat + stat2
+```
+</br>
+**Plot `uniform` probability density**
+```{r}
+# fitting a uniform distribution to the data, don't need fitdistr because just need the max and min of the data (so min and max are the only necessary args)
+stat3 <- stat_function(aes(x = xval, y = ..y..), fun = dunif, colour="darkgreen", n = length(z$myVar), args = list(min=min(z$myVar), max=max(z$myVar)))
+ p1 + stat + stat2 + stat3
+```
+</br>
+**Plot `gamma` probability density**
+</br>
+```{r}
+# to fit the gamma distribution we will again use the fitdistr function
+# this time we are interested in the max likely shape and max likely rate values 
+gammaPars <- fitdistr(z$myVar,"gamma")
+shapeML <- gammaPars$estimate["shape"]
+rateML <- gammaPars$estimate["rate"]
+
+stat4 <- stat_function(aes(x = xval, y = ..y..), fun = dgamma, colour="orange", n = length(z$myVar), args = list(shape=shapeML, rate=rateML))
+ p1 + stat + stat2 + stat3 + stat4
+# Notes: eyeballing it it looks like my data fits a gamma distribution most closely
+```
+</br>
+**Plot beta probability density**
+</br>
+This one has to be shown in its own plot because the raw data must be rescaled so they are between 0 and 1, and then they can be compared to the beta.
+```{r}
+# beta is different from the others because the limits are from 0 to 1
+# here we are creating a separate plot with these limits and only the histogram and geom_density line (other lines don't work because they're not from 0 to 1)
+pSpecial <- ggplot(data=z, aes(x=myVar/(max(myVar + 0.1)), y=..density..)) +
+  geom_histogram(color="grey60",fill="lightblue",size=0.2) + 
+  xlim(c(0,1)) +
+  geom_density(size=0.75,linetype="dotted")
+
+# creating list with the important beta parameters using fitdistr
+betaPars <- fitdistr(x=z$myVar/max(z$myVar + 0.1),start=list(shape1=1,shape2=2),"beta")
+# the params we are interested in are the max likely shape1 and max likely shape2
+shape1ML <- betaPars$estimate["shape1"]
+shape2ML <- betaPars$estimate["shape2"]
+
+# now creating a special plot with the beta distribution 
+statSpecial <- stat_function(aes(x = xval, y = ..y..), fun = dbeta, colour="orchid", n = length(z$myVar), args = list(shape1=shape1ML,shape2=shape2ML))
+pSpecial + statSpecial
+```
+The Saint Albans data also the gamma distribution the closest (like predicted by NG in this assignment).
+</br>
+**After looking at the plots now I can compare the best distribution by examining the log liklihood**
+</br>
+High log likelihood values are the "best" fit 
+```{r}
+normPars$loglik
+expoPars$loglik
+gammaPars$loglik
+# see which distr. "win"!
+# the highest (well, least negative loglik value) for the Saint Albans data is also a gamma distribution, which matches my conclusion based on just eye-balling the graphs
+```
+Now I'll simulate new data with the Saint Albans dataset:
+```{r}
+# simulating new chl data using max likelihood parameters from the original dataset 
+zSim <- rgamma(shape = gammaPars$estimate[1], 
+             rate = gammaPars$estimate[2], 
+             n = gammaPars$n)
+
+# need to create a data frame from the simulated data
+zSim <- data.frame(1:gammaPars$n,zSim)
+# renaming the columns in zSim
+names(zSim) <- list("ID","myVar")
+# cleaning up the data just to be sure 
+zSim <- zSim[zSim$myVar>0,]
+
+# now creating the histogram with my simulated data, using cornsilk color so can differentiate between simulated and real data
+pSim <- ggplot(data=zSim, aes(x=myVar, y=..density..)) +
+  geom_histogram(color="grey60",fill="cornsilk",size=0.2) 
+# creating a histogram with the original data in the lightgreen color (without the smooth density line)
+pZ <- ggplot(data=z, aes(x=myVar, y=..density..)) +
+  geom_histogram(color="grey60",fill="lightblue",size=0.2)
+pSim + stat4
+pZ + stat4
+
+```
+</br>
+The Saint Albans chlorophyll data looks pretty similar to the Missisquoi Bay data. I will definitely be exploring this further in the coming months!
+</br>
+**Once we get a little bit more R coding under our belts, we will return to the problem of simulating data and use some of this code again.**
+
+
+
+
+
+
+
