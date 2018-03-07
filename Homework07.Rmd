@@ -1,0 +1,195 @@
+---
+title: "Homework07"
+author: "Wilton Burns"
+date: "February 28, 2018 and March 7, 2018"
+output: html_document
+---
+
+#### 1) Go back to your “thinking on paper” exercise, and decide on a pattern that you might expect in your experiment if a specific hypothesis were true.
+Going to simulate a dataset for a nutrient enrichment experiment (see [Homework #2](Homework02.html) for more details). To start I'll just have 2 treatment groups: control and +N+P (Nitrogen and Phosphorus addition). 
+<br/> 
+
+#### 2) To start simply, assume that the data in each of your treatment groups follow a normal distribution. Specify the sample sizes, means, and variances for each group that would be reasonable if your hypothesis were true.
+```{r}
+
+# first, call the libraries I want to use for this assignment
+library(ggplot2)
+library(RColorBrewer)
+library(reshape2)
+
+# Next, create necessary variables
+nGroup <- 2 # 2 dif treatment groups
+nName <- c("Control", "Treat1") # name the treatments 
+nSize <- c(6,6) # both are n = 6
+nMean <- c(19, 27) # mean response in each group
+nSD <- c(3,6) # variance in each group
+ID <- 1:(sum(nSize)) # a collumn of unique IDs is good to have
+
+# creating the data in a list 
+resVar <- c(rnorm(n=nSize[1],mean=nMean[1],sd=nSD[1]),
+            rnorm(n=nSize[2],mean=nMean[2],sd=nSD[2]))
+
+# group name will repeat the same number of times as we set the size of each group aka 6 Controls and 6 Treat1 
+TGroup <- rep(nName, nSize)
+
+# creating the data frame 
+ANOdata <- data.frame(ID,TGroup,resVar)
+```
+
+#### 3) Using the methods we have covered in class, write a simple function to create a random data set that has these attributes. Organize these data into a data frame with the appropriate structure.
+
+```{r}
+###############################################################
+# FUNCTION: dataCreate
+# creates: similates a data frame with means, sample size, and variances that I set 
+# input: mean, n, and sd for 2 treatments 
+# output: data frame with 3 columns labeled Treatment, respVar, and ID 
+#--------------------------------------------------------------
+dataCreate <- function(mean1=mean1,mean2=27,
+                       n1=6,n2=6,
+                       sd1=3,sd2=6){
+  mydf <- data.frame(control=rnorm(mean=mean1,n=n1,sd=sd1),
+                     treat1=rnorm(mean=mean2,n=n2,sd=sd2))
+  myDF <- melt(mydf)
+  myDF$ID <- seq.int(nrow(myDF))
+  names(myDF) <- c("Treatment","respVar","ID")
+  return(myDF)
+}
+###############################################################
+
+# call on the function dataCreate I just made
+ANOdf <- dataCreate(mean1=19)
+
+```
+
+<br/>
+
+####4) Now write a simple function to analyze the data (probably as an ANOVA or regression analysis, but possibly as a logistic regression or contingency table analysis. Write another function to generate a useful graph of the data.
+<br/>
+Writing a function to analyze the data using ANOVA:
+```{r}
+###############################################################
+# FUNCTION: analyzeANO
+# calculates: ANOVA analysis 
+# input: a data frame (default is ANOdf) 
+# output: summary of the ANOVA analysis: Sum Sq, Sum Mean Sq, F value, and p value
+#--------------------------------------------------------------
+analyzeANO <- function(data = ANOdf){
+  ANOanalysis <- aov(respVar~Treatment, data = data)
+  summary(ANOanalysis)
+}
+##############################################################
+
+# now calling my function
+analyzeANO()
+
+# testing the function using the code from class to see if it did what I wanted 
+ANOmodel <- aov(respVar~Treatment, data=ANOdf)
+summary(ANOmodel) 
+```
+<b/>
+Next, writing a function to make a box plot: 
+```{r}
+# now writing a function to create a useful graph of the data 
+# NOTE: I had to troubleshoot this a lot because at first I couldn't do the function without specifying that each variable after data=ANOdf was a column in the data frame ANOdf
+# one way around this is how Lauren set up her functions which was to not name the columns in her first function and then for each sequential function the first time of code after setting up which dataframe to use was to name the columns
+# I did it differently by naming the columns Treatment, respVar, and ID from the beginning function and there was no problem in the analyzeANO function because the only variable to call on was the data frame ANOdf, but I ran into issues with my plot function because xVar,yVar, and fillVar are at the beginning of the function and it didn't know that I wanted to use ANOdf yet. The simple workaround was to call each column for each variable with the '$"
+
+###############################################################
+# FUNCTION: ANOplot
+# creates: box plot of the two treatments in ANOdf
+# input: data frame, xVar, yVar, fillVar  
+# output: ggplot box plot  
+#--------------------------------------------------------------
+ANOplot <- function(data=ANOdf, 
+                    xVar=ANOdf$Treatment, 
+                    yVar=ANOdf$respVar, 
+                    fillVar=ANOdf$Treatment){
+  ANObox <- ggplot(data=data, 
+                   aes(x=xVar,y=yVar,fill=fillVar))+
+    geom_boxplot()+
+    scale_fill_brewer(palette="Set1")
+    
+  print(ANObox)
+}
+
+p1 <- ANOplot()
+
+# test code while trying to write my function 
+#ANOPlot <- ggplot(data=ANOdf, aes(x=Treatment,y=respVar,fill=Treatment))+
+  #geom_boxplot()+
+  #scale_fill_brewer(palette="Set1")
+#ANOPlot
+```
+<br/>
+
+####5) Try running your analysis multiple times to get a feeling for how variable the results are with the same parameters, but different sets of random numbers.
+
+```{r}
+# trying multiple times with the original mean of 19 
+ANOdf <- dataCreate(mean1=19)
+
+# call the analyze function to run the ANOVA
+analyzeANO()
+# (1) 0.05 yes (2) 0.001 yes (3) 0.001, yes (4) 0.001, yes (5) 0, yes (6) 0.01, yes (7) 0.01, yes (8) 0.01, yes (9) 0.001, yes (10) 0, yes 
+
+```
+
+#### 6) Now begin adjusting the means of the different groups. Given the sample sizes you have chosen, how small can the differences between the groups be (the “effect size”) for you to still detect a significant pattern (p < 0.05).
+**Real data from the experiment in Lake Champlain had mean1 = 19, mean2 = 27, n = 6 for both treatments, and sd1 = 3, sd2 = 6.**
+<br/>
+
+I first want to try making the mean1 larger (so less of an "effect size") to see how that impacts the significance of the results. 
+<br/> 
+**TRY 1:** 
+```{r}
+# let's try with a larger mean1 
+ANOdf <- dataCreate(mean1=22)
+# call the analyze function to run the ANOVA
+analyzeANO()
+# (1) p = 0.01, yes (2) no (3) no (4) no 
+```
+**TRY 2:** 
+```{r}
+# even larger mean1
+ANOdf <- dataCreate(mean1=24)
+# call the analyze function to run the ANOVA
+analyzeANO()
+# not significant 
+```
+**TRY 3:**
+```{r}
+# mean1 that is 1 higher than original 
+ANOdf <- dataCreate(mean1=20)
+# call the analyze function to run the ANOVA
+analyzeANO()
+# (1) p = 0.001, yes (2) 0.01, yes (3) no (4) no (5) no (6) no (7) no (8) yes (9) yes (10) no
+```
+It seems like the original mean of 19 with n = 6 for both groups and sd1 = 3, sd2 = 6 is consistently significant, and decreasing the effect size by ~12% makes the liklihood of significance decrease substantially (went from 10/10 significant to 4/10 signficant). However, when I increased n from 6 to 10 and tested with mean1 = 20, 10/10 were significant. 
+<br/>
+
+#### 7) Alternatively, for the effect sizes you originally hypothesized, what is the minimum sample size you would need in order to detect a statistically significant effect. Again, run the model a few times with the same parameter set to get a feeling for the effect of random variation in the data.
+<br/>
+**TRY 1:** 
+```{r}
+# let's try an n of 3 (because with phytoplankton growth experiemnts only triplicates are often used) 
+ANOdf <- dataCreate(mean1=19, 
+                    n1 = 3, 
+                    n2 = 3)
+# call the analyze function to run the ANOVA
+analyzeANO()
+# (1) 0.01, yes (2) no (3) 0.01, yes (4) 0.1, no (5) 0.01, yes (6) no (7) 0.001, yes (8) 0.001, yes (9) 0.05, yes (10) 0.001, yes
+```
+**TRY 2:** 
+```{r}
+# what about if I increase the size of n by 1, so testing n = 4 for both groups? 
+ANOdf <- dataCreate(mean1=19, 
+                    n1 = 4, 
+                    n2 = 4)
+# call the analyze function to run the ANOVA
+analyzeANO()
+# (1) no (2) 0, yes (3) 0.001, yes (4) no (5) 0.01, yes (6) no (7) 0.05, yes (8) no (9) 0.01, yes (10) 0.001, yes 
+
+```
+With n = 3, 7/10 were significant and with n = 4, 6/10 were significant so it seems like if these are my expected results a small sample size could be okay. It's cumbersome to have large n for these experiments because I'm limited in space by incubating the bags by deploying them off of a buoy moored in the lake. I also know that there's not much room at all for a decreased "effect size" so will likely have an n between 3 and 10 (hopefully closer to 10!). 
+
