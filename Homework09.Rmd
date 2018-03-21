@@ -1,0 +1,154 @@
+---
+title: "Homework #9"
+author: "Wilton Burns"
+date: "March 21, 2018"
+output: html_document
+---
+
+##Organizing Code With Structured Programming
+
+####1) Use the code that you worked on in the last exercise, and re-organize it following the principles of structured programming. Do all the work in a single chunk in your R markdown file, just as if you were writing a single R script. Start with all of your annotated functions, preliminary calls, and global variables. The program body should be only a few lines of code that call the appropriate functions and run them in the correct order. Make sure that the output from one function serves as the input to the next. You can either daisy-chain the functions or write separate lines of code to hold elements in temporary variables and pass the along.
+
+
+#### 2) Once your code is up and working, modify your program do something else: record a new summary variable, code a new statistical analysis, or create a different set of random variables or output graph. Do not rewrite any of your existing functions. Instead, copy them, rename them, and then modify them to do new things. Once your new functions are written, add some more lines of program code, calling a mixture of your previous functions and your new functions to get te job done.
+
+
+#### 3) Optional. If time permits and you have the skills, try putting your program inside of a for loop and repeat the analysis with a different stochastic data set (each time you call a function that invokes the random number generator, it will create a new set of data for you to process). Can you create a data structure to store the summary statistics created in each pass through the loop? If not, your program will work, but it will only show the results from the final replicate (the previous results will be written over each time you traverse the loop). > Continue working on exercise from previous week. 
+
+
+```{r, message=FALSE}
+# Re-organizing the code from Homework 7/8 in the format of structured programming 
+# This program creates and runs 3 functions: dataCreate (simulates data), analyzeANO (analyzes the data), and ANOplot (plots the data)
+# March 21 2018 
+# WGB 
+
+
+# Preliminaries 
+library(ggplot2)
+library(RColorBrewer)
+library(reshape2)
+
+# All functions must be declared first before they are used 
+
+###############################################################
+# FUNCTION: dataCreate
+# creates: similates a data frame with means, sample size, and variances that I set 
+# input: mean, n, and sd for 2 treatments 
+# output: data frame with 3 columns labeled Treatment, respVar, and ID 
+#--------------------------------------------------------------
+dataCreate <- function(mean1=mean1,mean2=27,
+                       n1=6,n2=6,
+                       sd1=3,sd2=6){
+  mydf <- data.frame(control=rnorm(mean=mean1,n=n1,sd=sd1),
+                     treat1=rnorm(mean=mean2,n=n2,sd=sd2))
+  myDF <- melt(mydf)
+  myDF$ID <- seq.int(nrow(myDF))
+  names(myDF) <- c("Treatment","respVar","ID")
+  return(myDF)
+}
+###############################################################
+
+###############################################################
+# FUNCTION: dataCreateLargeSD
+# creates: similates a data frame with means, sample size, and variances that I set (this one just has larger variances than dataCreate)
+# input: mean, n, and sd for 2 treatments 
+# output: data frame with 3 columns labeled Treatment, respVar, and ID 
+#--------------------------------------------------------------
+dataCreateLargeSD <- function(mean1=mean1,mean2=27,
+                       n1=6,n2=6,
+                       sd1=8,sd2=12){
+  mydf <- data.frame(control=rnorm(mean=mean1,n=n1,sd=sd1),
+                     treat1=rnorm(mean=mean2,n=n2,sd=sd2))
+  myDF <- melt(mydf)
+  myDF$ID <- seq.int(nrow(myDF))
+  names(myDF) <- c("Treatment","respVar","ID")
+  return(myDF)
+}
+###############################################################
+
+###############################################################
+# FUNCTION: analyzeANO
+# calculates: ANOVA analysis 
+# input: a data frame (default is ANOdf) 
+# output: summary of the ANOVA analysis: Sum Sq, Sum Mean Sq, F value, and p value
+#--------------------------------------------------------------
+analyzeANO <- function(data = ANOdf){
+  ANOanalysis <- aov(respVar~Treatment, data = data)
+  summary(ANOanalysis)
+}
+##############################################################
+
+###############################################################
+# FUNCTION: pValsAnalyzeANO
+# calculates: p values of an ANOVA analysis
+# input: a data frame (default is ANOdf) 
+# output: only the p values from the summary of the ANOVA analysis
+#--------------------------------------------------------------
+pValsAnalyzeANO <- function(data = ANOdf){
+  ANOanalysis <- aov(respVar~Treatment, data = data)
+  test <- summary(ANOanalysis)
+  pval <- test[[1]]$'Pr(>F)'
+  print(pval[1])
+}
+##############################################################
+
+###############################################################
+# FUNCTION: ANOplot
+# creates: box plot of the two treatments in ANOdf
+# input: data frame, xVar, yVar, fillVar  
+# output: ggplot box plot  
+#--------------------------------------------------------------
+ANOplot <- function(data=ANOdf, 
+                    xVar=ANOdf$Treatment, 
+                    yVar=ANOdf$respVar, 
+                    fillVar=ANOdf$Treatment){
+  ANObox <- ggplot(data=data, 
+                   aes(x=xVar,y=yVar,fill=fillVar))+
+    geom_boxplot()+
+    scale_fill_brewer(palette="Set1", name = " ")+
+    labs(x="Treatment", y="Response variable")
+    
+  print(ANObox)
+}
+##########################################################
+
+# 1. 
+# Program body 
+ANOdf <- dataCreate(mean1=19)
+analyzeANO()
+ANOplot()
+
+# 2. 
+# Adding in the new functions
+ANOdf <- dataCreateLargeSD(mean1=19)
+pValsAnalyzeANO()
+ANOplot()
+
+# 3. 
+# Creating a for loop so that I can repeat the analysis with a different stochastic dataset.
+# I want it to create a data structure to store the summary stats in each pass of the loop 
+
+
+# for loop with dataCreate 
+vals <- vector(mode="numeric")
+
+for (i in 1:10)  {
+  ANOdf <- dataCreate(mean1=19)
+  vals[i] <- pValsAnalyzeANO(ANOdf)
+}
+print(vals)
+
+
+# for loop with dataCreateLargeSD
+largeSDvals <- vector(mode="numeric")
+
+for (i in 1:10) {
+  ANOdf <- dataCreateLargeSD(mean1=17)
+  largeSDvals[i] <- pValsAnalyzeANO(ANOdf)
+}
+print(largeSDvals)
+
+# next I want to count how many p values in each vector are significant (so < 0.05) 
+
+```
+

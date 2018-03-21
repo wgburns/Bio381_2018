@@ -34,5 +34,8 @@ Working with regular expressions.
 Fitting distributions and simulating data. 
 <br/>
 
-[Homework #7](Homework07.html):     
-Creating fake data to further explore nutrient limitation experiments. 
+[Homework #7/8](Homework07.html):     
+Creating fake data to further explore nutrient limitation experiments.
+
+[Homework #9](Homework09.html):     
+Organizing the code from Homework 7 with structured programming and writing for loops :) 
