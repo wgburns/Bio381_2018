@@ -39,3 +39,12 @@ Creating fake data to further explore nutrient limitation experiments.
 
 [Homework #9](Homework09.html):     
 Organizing the code from Homework 7 with structured programming and writing for loops :) 
+
+[Homework #10](Homework10.html):
+
+[Homework #11 (Part 1)](Homewwork11_1.html):
+Function plotting - creating 2 functions to calculate and plot SDI (Shannon Diversity Index)
+
+[Homework #11 (Part 2)](Homework11_2.html):
+Randomization tests - shuffling a dataset 1000 times and comparing the variance of the means to the observed variance 
+

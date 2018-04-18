@@ -1,0 +1,67 @@
+---
+title: "Homework 11 (Part 1)"
+author: "Wilton Burns"
+date: "April 11, 2018"
+output: html_document
+---
+
+## Part 1: Function plotting 
+
+####**1) Use the code from class as a template and analyze a function of your choosing that is relevant to your own research. Do not change any of the functions in the class code. Instead, copy and rename functions for your own project. Edit those copies, and then modify the lines of code in the main body of your program to call the new functions. If you do this carefully, you will be able to take full advantage of the existing program, but adapt it for your specific use.**
+a) I decided to make a function, shannonDivIndex, that analyzes a vector of species counts, creates relative proportion values (Pi) for each species count and then spits out the Shannon Diversity Index for that sample. The individual vectors could be different sampling days from the same site or could be from all different sites. Since I made the function to just analyze one vector at a time, the analysis of different datasets is flexible.
+
+```{r}
+
+########################################################
+# FUNCTION: shannonDivIndex
+# calculates SDI from fraction values  
+# inputs: A = vector of fractions of each species
+# output: SDI = vector of Shannon diversity values 
+#------------------------------------------------------
+shannonDivIndex <- function(A = sample(seq(20,2000), 15)) {
+  Pi <- A/sum(A)
+  SDI <- -sum(Pi*log(Pi))
+  return(SDI)
+}
+#-----------------------------------------------------
+shannonDivIndex()
+
+
+```
+<br/>
+b) The plot function I made, shannonDivPlot, takes in a vector called SDI and creates an xy scatter plot with circles. The x values are from 1 to the length of the input vector (called N in my function) and the y values are the values in the vector (A).
+
+```{r}
+########################################################
+# FUNCTION: shannonDivPlot
+# plot curve in base R graphics 
+# input: A = vector of 100 SDI values 
+# output: base graph with SDI values  
+#------------------------------------------------------
+shannonDivPlot <- function(A = SDI) {
+  N <- length(SDI)
+  shannonPlot <- plot(x=1:N, y=A, 
+       type = "l", 
+       xlab = "Sampling day", 
+       ylab = "SDI", 
+       ylim = c(0,5))
+  print(shannonPlot)
+}
+#------------------------------------------------------
+
+```
+
+
+```{r}
+# program code 
+# create the dataset 
+SDI <- vector(mode="numeric", length = 100)
+
+for (i in 1:length(SDI)) {
+  SDI[i] <- shannonDivIndex()
+}
+
+# make the plot 
+shannonDivPlot()
+```
+

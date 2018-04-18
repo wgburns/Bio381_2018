@@ -1,0 +1,144 @@
+---
+title: "Homework 11 (Part 2)"
+author: "Wilton Burns"
+date: "April 12, 2018"
+output: html_document
+---
+## Part 2: Randomization tests
+
+####**2) Similarly, use the code from yesterday’s class to design and conduct a randomization test for some of your own data. You will need to modify the functions that read in the data, calculate the metric, and randomize the data. Once those are set up, the program should run correctly calling your new functions. Also, to make your analysis fully repeatable, make sure you set the random number seed at the beginning (use either set.seed() in base R, or char2seed in the TeachingDemos package.**
+
+The goal of this exercise is to create our own p-values for an observed metric and determine if the relationship we see in a datset is significant by shuffling up the data but using the same exact values. In class we used continuous data and the metric we compared was the slope of a linear model, for this assignment I will use discrete data and use an analysis of variance. I am going to use the same data from [Homework 7/8](Homework07.html) which is from nutrient limitation experiments. There are 4 groups: control, +Nitrogen, +Phosphorus, and +N and +P. <br/>
+- readData: reads data in <br/>
+- getMetric: calculates  varianc between the means of the 4 groups <br/>
+- shuffleData: shuffles yVar values <br/>
+- getPVAL: calculates p-val from the observed and simulated data <br/>
+- plotRanTest: plots histogram with a vertical line for the observed value
+
+```{r}
+# Preliminaries 
+library(ggplot2)
+library(TeachingDemos)
+char2seed("Cruel April")
+ 
+
+########################################################
+# FUNCTION: readData
+# read in or generate data frame 
+# input: file name 
+# output: 3-column data frame of observed data (ID, xVar, yVar)
+#------------------------------------------------------
+readData <- function(z=NULL, fileName = "NPLimitation.csv") {
+              if(is.null(z)) {
+                db <- read.csv(fileName)
+                xVar <- db$xVar
+                yVar <- db$yVar
+                dF <- data.frame(ID=seq_along(xVar), xVar, yVar)
+                
+return(dF)
+  
+  }
+}
+#---------------------------------------------------------
+
+
+########################################################
+# FUNCTION: getMetric
+# calculate metric for randomization test (variance between groups of means)
+# input: 3- column data frame for regression
+# output: variance of means (single number from randomization test notes)
+#------------------------------------------------------
+getMetric <- function(z=db) {
+                xVar <- z$xVar
+                yVar <- z$yVar
+                dF <- data.frame(ID=seq_along(xVar), xVar, yVar)
+ treatmentMeans <- aggregate(z$yVar, by=list(z$xVar), FUN=mean)
+ varMeans <- var(treatmentMeans[, 2])
+ return(varMeans)
+}
+#---------------------------------------------------------
+
+
+########################################################
+# FUNCTION: shuffleData
+# randomization data for regression analysis
+# input: 3-column data frame (ID, xVar, yVar)
+# output: 3-column data frame (ID, xVar, yVar) (just shuffled up!)
+#------------------------------------------------------
+shuffleData <- function(z=db) {
+                  xVar <- db$xVar
+                  yVar <- db$yVar
+                  z <- data.frame(ID=seq_along(xVar), xVar, yVar)
+  z[,2] <- sample(z[,2]) # reshuffling the y values 
+  # de-coupling pattern between x and y 
+  # default is replace = FALSE so in one swoop shuffles data randomly
+  
+  return(z)
+}
+#---------------------------------------------------------
+
+
+########################################################
+# FUNCTION: getPVAL
+# calculate p value for observed, simulated data
+# input: list of observed metric (variances) and vector of simulated metric
+# output: lower, upper tail probability vector 
+#------------------------------------------------------
+getPVAL <- function(z=NULL) {
+            if(is.null(z)){
+              z <- list(xObs=runif(1), xSim=runif(1000)) }
+  pLower <- mean(z[[2]]<=z[[1]]) 
+  pUpper <- mean(z[[2]]>=z[[1]])
+  
+  return(c(pL=pLower,pU=pUpper))
+}
+#---------------------------------------------------------
+
+
+########################################################
+# FUNCTION: plotRanTest
+# ggplot graph 
+# input: list of observed metric (variances) and vector of simulated metric
+# output: ggplot graph 
+#------------------------------------------------------
+plotRanTest <- function(z=NULL) {
+  if(is.null(z)){
+    z <- list(xObs=runif(1), xSim=runif(1000)) }
+  db <- data.frame(ID=seq_along(z[[2]]), 
+                   simX=z[[2]])
+  p1 <- ggplot(data=db, mapping=aes(x=simX))
+  p1 + geom_histogram(mapping=aes(fill=I("goldenrod"), 
+                                  color=I("black"))) +
+    geom_vline(aes(xintercept=z[[1]], col="blue"))
+}
+#---------------------------------------------------
+
+
+# main body of code 
+nSim <- 1000 # number of simulations 
+Xsim <- rep(NA, nSim) # will hold simulated slopes 
+
+db <- readData()
+Xobs <- getMetric()
+
+# loop through to create 1000 simulated slopes for xSim vector
+for (i in seq_len(nSim)){
+  Xsim[i] <- getMetric(shuffleData(db))
+}
+
+# creating the list structure that we need for final function
+vars <- list(Xobs, Xsim)
+getPVAL(vars)
+# found that 94.6% of simulated slopes are to the left of the Xobs and 5.4% are to the right 
+# now let's plot it 
+plotRanTest(z=vars) 
+
+```
+
+#### **3) For comparison, calculate in R the standard statistical analysis you would use with these data. How does the p-value compare for the standard test versus the p value you estimated from your randomization test? If the p values seem very different, run the program again with a different starting seed (and/or increase the number of replications in your randomization test). If there are persistent differences in the p value of the standard test versus your randomization, what do you think is responsible for this difference?**
+The p-value from this randomization test is 0.058 and the p-value using the aov (analysis of variance) function is 0.055 --> they are pretty similar! Cool! 
+```{r}
+summary(aov(yVar~xVar, data=db))
+
+```
+
