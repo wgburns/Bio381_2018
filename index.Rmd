@@ -49,3 +49,6 @@ Function plotting - creating 2 functions to calculate and plot SDI (Shannon Dive
 [Homework #11 (Part 2)](Homework11_2.html):
 Randomization tests - shuffling a dataset 1000 times and comparing the variance of the means to the observed variance 
 
+[Homework #12](Homework12.html):
+Making a heat map of water temperature in Missisquoi Bay from summer 2017 paired with a line graph of the relative amounts of chlorophyll and phycocyanin (photosynthetic pigment in cyanobacteria) from the same time period 
+

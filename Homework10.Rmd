@@ -7,13 +7,13 @@ output: html_document
 
 ##Batch processing (continued)
 
-####1. Go to the main course webpage, and follow the link to yesterday’s Batch Processing lecture. Scroll down near the end of that markdown file to find the code we were working on and the place we left off. The next line of code you should be entering is:
+#### 1. Go to the main course webpage, and follow the link to yesterday’s Batch Processing lecture. Scroll down near the end of that markdown file to find the code we were working on and the place we left off. The next line of code you should be entering is:
 `fileNames <- list.files(path=fileFolder) `
 
 #### 2. Finish your program by adding in the rest of the code. You can quickly cut and paste everything in, although you won’t learn much that way. A better and slower approach is to type in each line (as we do in class), get it to work, and see if you can understand what each line is doing. Lauren can help explain any of the lines of code that are not clear.
 I kept NG's comments in and put in comments in my own words so that I could work through each step of the code. 
 
-```{r}
+```{r, warning=FALSE}
 # Basic code for batch processing 
 # March 27 2018 
 # WGB 
@@ -26,7 +26,6 @@ I kept NG's comments in and put in comments in my own words so that I could work
 #       : fileFolder = 
 #       : fileNA = c(min,max) number of rows in file 
 # output:  set of random files 
-#------------------------------------------------------
 FileBuilder <- function(fileN = 10, 
                         fileFolder = "RandomFiles/",
                         fileSize = c(15,100),
@@ -69,21 +68,14 @@ write.table(x=dF,
             append=TRUE)
   } # close the for loop
 } # close the function 
-
-
-
-#######################################################
-# FUNCTION: regStats
-# fit linear model, get regression stats
-# input: 2-column data frame
-# output: slope, p-value and r2
 #------------------------------------------------------
+
+
 #############################################
 # FUNCTION: regStats
 # fit linear regression model, get stats
 # input: 2 column data frame
 # output: slope,p-value,r2
-#------------------------
 regStats <- function(d=NULL){
   if(is.null(d)){
     xVar <- runif(10)
@@ -97,13 +89,13 @@ regStats <- function(d=NULL){
                     r2=.$r.squared)
   return(statsList)
 } #end function regStats
-
 #-------------------------------------------------------
+
+
 # Start body of program 
 library(TeachingDemos)
 char2seed("Freezing March") # really not sure what this line does! Will have to ask Lauren...
 
-#------------------------------------------------
 
 # Global Variables 
 fileFolder <- "RandomFiles/" # telling the program where to find the folder w the files

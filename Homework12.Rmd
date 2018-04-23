@@ -1,0 +1,86 @@
+---
+title: "Homework 12"
+author: "Wilton Burns"
+date: "April 18, 2018"
+output: html_document
+---
+#### 1. For this week in lab, use your newly-developed ggplot chops to create some nice graphs from your own data (If you do not have a good data frame to use for graphics, use one of the many built-in data frames from R (other than mpg, which we are using in class)). Experiment with different themes, theme base sizes, aesthetics, mappings, and faceting. When you are finished, try exporting them to high quality pdfs, jpgs, eps files, or other formats that you would use for submission to a journal.
+--> In this exercise, I encourage you to improve your graphics with elements that we have not (yet) covered in ggplot. For example, can you change the labels on a facet plot so that they are more informative than the variable names that are supplied from your data frame? Can you figure out how to add text annotations, lines and arrows to your graph? Can you figure out how to use custom colors that you have chosen for your fills and lines? Your resources for these explorations are google, Stack Overflow – and Lauren!
+
+```{r}
+library(ggplot2)
+library(lubridate)
+library(patchwork)
+# loading in the dataset of water temperature from Missisquoi Bay during summer 2017
+db <- read.csv("HF_MB2017CLEAN04182018.csv")
+# changing to right date formate
+db$timestamp <- as.POSIXct(strptime(db$timestamp,format = "%m/%d/%Y %H:%M", tz = "Etc/GMT-4"))
+# let's see what we are dealing with! 
+summary(db$wtemp)
+
+# trying to make a heat map of temperature data 
+p1 <- ggplot(data=db, 
+             mapping=aes(x=timestamp, y=depth, fill=wtemp))
+p1 + geom_tile()
+
+# let's make the color go from red to blue
+p1 + geom_tile()+
+  scale_fill_gradient2(midpoint=18,
+                       low="darkblue",
+                       mid=gray(0.8), 
+                       high="red")+
+   scale_y_reverse()
+
+# let's change the color again and try the "heat" color package 
+p2 <- ggplot(data=db, mapping=aes(x=timestamp, y=depth))
+p2 + geom_raster(aes(fill=wtemp), interpolate=TRUE) +
+  scale_fill_gradientn(colors=heat.colors(5)) +
+  theme_classic()+
+  scale_y_reverse()
+# heat color package is nice BUT the scale is going the opposite way...also it'd be nice to have blue as the lower temps so trying another set of codes: 
+
+
+# trying to get the colors right 
+myColors <- c("#2c7bb6", "#abd9e9", "#ffffbf","#fdae61","#d7191c")
+p2 + geom_raster(aes(fill=wtemp), interpolate=TRUE) +
+  scale_fill_gradientn(colors = myColors) +
+  theme_classic()+
+  scale_y_reverse()
+
+# now that I have the color right I want to go back and take out the white spaces in the graph 
+# these are because from July to Sept, the profiler was only doing a profile every 2 hours but then in Sept we set it to do a vertical profile every hour
+# going to aggregate the data and only plot the even hours and see if that makes the map look more continous 
+# could subset the actual data frame but I want to try and use the technique he showed us in class and just plot the subset of the data I want to show
+# also, making the legend title have the degree symbol took a surprising amount of Googling! 
+db$hours <- hour(db$timestamp)
+
+p2 <- ggplot(data=db[db$hour%%2==0, ])
+p4 <- p2 + geom_raster(mapping=aes(x=timestamp, 
+                                   y=depth, 
+                                   fill=wtemp), 
+                       interpolate=TRUE) +
+  scale_fill_gradientn(colors = myColors) +
+  theme_classic()+
+  scale_y_reverse()+
+  theme(axis.title.x = element_blank())+
+  ylab("Water depth (m)")+
+  guides(fill=guide_legend(title=expression("Water temp ("* degree * "C)")))
+
+# now going to use patchwork to pair the water temperature heatmap with the biological data that I have collected to far (which is high-frequency sensor data for the relative amounts of chlorophyll and phycocyanin in the surface of the lake (~0.5m)) 
+
+p3 <- ggplot(data=db[db$hour%%2==0, ])+
+  geom_line(mapping=aes(x=timestamp, y=chl_conc), color="green")+
+  theme_classic()+
+  ylab("Chl (ug/L)")+
+  theme(axis.title.y.left = element_text(color="green"))+
+  theme(axis.title.x = element_blank())
+
+p3 <- p3 + geom_line(mapping=aes(x=timestamp, y=pc_rfu*2),color="blue", alpha = 0.8)
+p3 <- p3 + scale_y_continuous(sec.axis = sec_axis(~.*(1/2), name = "PC (RFU)"))+
+  theme(axis.title.y.right = element_text(color="blue"))
+p4 + theme(text = element_text(size=20))+
+  p3 + theme(text = element_text(size=20) )+ plot_layout(ncol=1)
+
+
+```
+
