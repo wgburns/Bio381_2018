@@ -15,7 +15,7 @@ Check out the [Saving our Waters VT PBS](https://www.vermontpbs.org/water/) mini
 
 ###Homework assignments 
 [Homework #2](Homework02.html):    
-Conceptual diagram and early graph for my dissertation work. 
+Conceptual diagram and early graph for my dissertation work
 <br/>
 
 [Homework #3](test.pdf):    
@@ -23,32 +23,38 @@ First beamer presentation!
 <br/>
 
 [Homework #4](Homework04.html):    
-Getting familiar with R. 
+Getting familiar with R
 <br/> 
 
 [Homework #5](Homework5Typ.html):   
-Working with regular expressions. 
+Working with regular expressions
 <br/>
 
 [Homework #6](Homework06.html):    
-Fitting distributions and simulating data. 
+Fitting distributions and simulating data
 <br/>
 
 [Homework #7/8](Homework07.html):     
-Creating fake data to further explore nutrient limitation experiments.
+Creating fake data to further explore nutrient limitation experiments
+<br/>
 
 [Homework #9](Homework09.html):     
 Organizing the code from Homework 7 with structured programming and writing for loops :) 
+<br/>
 
 [Homework #10](Homework10.html):
 Batch processing 
+<br/>
 
 [Homework #11 (Part 1)](Homework11_1.html):
 Function plotting - creating 2 functions to calculate and plot SDI (Shannon Diversity Index)
+<br/>
 
 [Homework #11 (Part 2)](Homework11_2.html):
-Randomization tests - shuffling a dataset 1000 times and comparing the variance of the means to the observed variance 
+Randomization tests - shuffling a dataset 1000 times and comparing the variance of the means to the observed variance
+<br/>
 
 [Homework #12](Homework12.html):
-Making a heat map of water temperature in Missisquoi Bay from summer 2017 paired with a line graph of the relative amounts of chlorophyll and phycocyanin (photosynthetic pigment in cyanobacteria) from the same time period 
+Making a heat map of water temperature data paired with a line graph of the relative amounts of biological parameters from the same time period
+<br/>
 
