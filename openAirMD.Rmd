@@ -34,7 +34,7 @@ output:
 2. [Plotting with openair (RPubs)](https://rpubs.com/NateByers/Openair)
 <br/> 
 
-###Now for the R code: 
+#Now for the R code: 
 ```{r}
 # Using the open air package for plotting time series 
 # 24 April 2018 
